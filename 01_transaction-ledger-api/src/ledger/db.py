@@ -15,7 +15,7 @@ def init_db():
     conn.close()
 
 accounts = []
-class account():
+class account_class():
     def __init__(self, name, balance, id):
         conn = get_connection()
         self.id = id
@@ -65,7 +65,7 @@ class account():
         return self.balance
 
 transactions = []
-class transaction():
+class transaction_class():
     def __init__(self, account_source, account_destination, amount, transaction_type):
         self.account_source = account_source
         self.account_destination = account_destination
@@ -89,15 +89,15 @@ class transaction():
 
 if __name__ == "__main__":
     # Create accounts
-    account1 = account("Alice", 1000, 1)
-    account2 = account("Bob", 500, 2)
+    account1 = account_class("Alice", 1000, 1)
+    account2 = account_class("Bob", 500, 2)
     accounts.append(account1)
     accounts.append(account2)
 
     # Perform transactions
-    transaction1 = transaction(None, account1, 200, "deposit")
-    transaction2 = transaction(account1, None, 150, "withdraw")
-    transaction3 = transaction(account1, account2, 300, "transfer")
+    transaction1 = transaction_class(None, account1, 200, "deposit")
+    transaction2 = transaction_class(account1, None, 150, "withdraw")
+    transaction3 = transaction_class(account1, account2, 300, "transfer")
 
     transactions.append(transaction1)
     transactions.append(transaction2)

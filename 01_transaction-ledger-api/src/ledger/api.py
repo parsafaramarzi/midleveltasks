@@ -49,8 +49,7 @@ def create_transaction(transaction_data: TransactionModel):
 
     if transaction_data.account_destination_id is not None:
         conn = get_connection()
-        conn.execute("SELECT * FROM accounts WHERE id = ?", (transaction_data.account_destination_id,))
-        destination_row = conn.fetchone()
+        destination_row = conn.execute("SELECT * FROM accounts WHERE id = ?", (transaction_data.account_destination_id,)).fetchone()
         conn.close()
         if destination_row:
             account_destination = account_class(destination_row[1], destination_row[2], destination_row[0])

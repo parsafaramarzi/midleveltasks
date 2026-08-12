@@ -25,8 +25,7 @@ def create_account(account: AccountModel):
 @app.get("/accounts/{account_id}", response_model=AccountModel)
 def get_account(account_id: int):
     conn = get_connection()
-    conn.execute("SELECT * FROM accounts WHERE id = ?", (account_id,))
-    row = conn.fetchone()
+    row = conn.execute("SELECT * FROM accounts WHERE id = ?", (account_id,)).fetchone()
     conn.close()
     if row:
         account = account_class(row[1], row[2], row[0])
@@ -41,8 +40,7 @@ def create_transaction(transaction_data: TransactionModel):
 
     if transaction_data.account_source_id is not None:
         conn = get_connection()
-        conn.execute("SELECT * FROM accounts WHERE id = ?", (transaction_data.account_source_id,))
-        source_row = conn.fetchone()
+        source_row = conn.execute("SELECT * FROM accounts WHERE id = ?", (transaction_data.account_source_id,)).fetchone()
         conn.close()
         if source_row:
             account_source = account_class(source_row[1], source_row[2], source_row[0])
@@ -67,8 +65,7 @@ def create_transaction(transaction_data: TransactionModel):
 @app.get("/transactions/{transaction_id}", response_model=TransactionModel)
 def get_transaction(transaction_id: int):
     conn = get_connection()
-    conn.execute("SELECT * FROM transactions WHERE id = ?", (transaction_id,))
-    row = conn.fetchone()
+    row = conn.execute("SELECT * FROM transactions WHERE id = ?", (transaction_id,)).fetchone()
     conn.close()
     if row:
         return {"id": row[0], "account_source_id": row[1], "account_destination_id": row[2], "amount": row[3], "transaction_type": row[4], "timestamp": row[5]}
@@ -78,8 +75,7 @@ def get_transaction(transaction_id: int):
 @app.get("/transactions/", response_model=list[TransactionModel])
 def get_transactions_by_account(account_id: int):
     conn = get_connection()
-    conn.execute("SELECT * FROM transactions WHERE account_source = ? OR account_destination = ?", (account_id, account_id))
-    rows = conn.fetchall()
+    rows = conn.execute("SELECT * FROM transactions WHERE account_source = ? OR account_destination = ?", (account_id, account_id)).fetchall()
     conn.close()
     transactions = []
     for row in rows:

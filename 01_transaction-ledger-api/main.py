@@ -22,30 +22,30 @@ class account():
         conn.commit()
 
     def deposit(self, amount):
-        self.balance += amount
-        c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (self.balance, self.id))
+        c.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, self.id))
         conn.commit()
+        self.balance += amount
         return self.balance
 
     def withdraw(self, amount):
         if amount > self.balance:
             return "Insufficient funds"
         else:
-            self.balance -= amount
-            c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (self.balance, self.id))
+            c.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
             conn.commit()
+            self.balance -= amount
             return self.balance
 
     def transfer(self, amount, destination_account):
         if amount > self.balance:
             return "Insufficient funds"
         else:
+            c.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
+            conn.commit()
+            c.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, destination_account.id))
+            conn.commit()
             self.balance -= amount
             destination_account.balance += amount
-            c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (self.balance, self.id))
-            conn.commit()
-            c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (destination_account.balance, destination_account.id))
-            conn.commit()
             return self.balance
 
     def get_balance(self):

@@ -1,29 +1,35 @@
 import datetime
 import sqlite3
 
-conn = sqlite3.connect("transaction_ledger.db")
-c = conn.cursor()
+def get_connection():
+    return sqlite3.connect("transaction_ledger.db")
 
-c.execute('''CREATE TABLE IF NOT EXISTS accounts
-             (id INTEGER PRIMARY KEY, name TEXT, balance INTEGER)''')
-
-c.execute('''CREATE TABLE IF NOT EXISTS transactions
-             (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER, amount INTEGER, transaction_type TEXT, timestamp DATETIME)''')
-
-conn.commit()
+def init_db():
+    conn = sqlite3.connect("transaction_ledger.db")
+    conn.execute('''CREATE TABLE IF NOT EXISTS accounts
+                 (id INTEGER PRIMARY KEY, name TEXT, balance INTEGER)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS transactions
+                 (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER,
+                  amount INTEGER, transaction_type TEXT, timestamp DATETIME)''')
+    conn.commit()
+    conn.close()
 
 accounts = []
 class account():
     def __init__(self, name, balance, id):
+        conn = get_connection()
         self.id = id
         self.name = name
         self.balance = balance
-        c.execute("INSERT OR REPLACE INTO accounts (id, name, balance) VALUES (?, ?, ?)", (self.id, self.name, self.balance))
+        conn.execute("INSERT OR REPLACE INTO accounts (id, name, balance) VALUES (?, ?, ?)", (self.id, self.name, self.balance))
         conn.commit()
+        conn.close()
 
     def deposit(self, amount):
-        c.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, self.id))
+        conn = get_connection()
+        conn.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, self.id))
         conn.commit()
+        conn.close()
         self.balance += amount
         return self.balance
 
@@ -31,22 +37,27 @@ class account():
         if amount > self.balance:
             return "Insufficient funds"
         else:
-            c.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
+            conn = get_connection()
+            conn.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
             conn.commit()
+            conn.close()
             self.balance -= amount
             return self.balance
 
     def transfer(self, amount, destination_account):
         if amount > self.balance:
             return "Insufficient funds"
+        conn = get_connection()
         try:
-            c.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
-            c.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, destination_account.id))
+            conn.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
+            conn.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, destination_account.id))
             conn.commit()
+            conn.close()
             self.balance -= amount
             destination_account.balance += amount
         except Exception:
             conn.rollback()
+            conn.close()
             raise
         return self.balance
 
@@ -61,9 +72,11 @@ class transaction():
         self.amount = amount
         self.transaction_type = transaction_type
         self.timestamp = datetime.datetime.now()
-        c.execute("INSERT INTO transactions (account_source, account_destination, amount, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?)", (self.account_source.id if self.account_source else None, self.account_destination.id if self.account_destination else None, self.amount, self.transaction_type, self.timestamp))
+        conn = get_connection()
+        conn.execute("INSERT INTO transactions (account_source, account_destination, amount, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?)", (self.account_source.id if self.account_source else None, self.account_destination.id if self.account_destination else None, self.amount, self.transaction_type, self.timestamp))
         conn.commit()
-        
+        conn.close()
+
     def process_transaction(self):
         if self.transaction_type == "deposit":
             return self.account_destination.deposit(self.amount)

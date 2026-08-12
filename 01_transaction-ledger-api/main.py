@@ -43,6 +43,7 @@ class account():
             self.balance -= amount
             destination_account.balance += amount
             c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (self.balance, self.id))
+            conn.commit()
             c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (destination_account.balance, destination_account.id))
             conn.commit()
             return self.balance
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     # Perform transactions
     transaction1 = transaction(None, account1, 200, "deposit")
     transaction2 = transaction(account1, None, 150, "withdraw")
-    transaction3 = transaction(account1, account2, 300, "transfer")  # Invalid type
+    transaction3 = transaction(account1, account2, 300, "transfer")
 
     transactions.append(transaction1)
     transactions.append(transaction2)

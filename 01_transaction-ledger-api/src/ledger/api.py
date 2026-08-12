@@ -79,7 +79,7 @@ def get_transactions_by_account(account_id: int):
     transactions = []
     for row in rows:
         transactions.append({"id": row[0], "account_source_id": row[1], "account_destination_id": row[2], "amount": row[3], "transaction_type": row[4], "timestamp": row[5]})
-    return {"transactions": transactions}
+    return transactions
 
 if __name__ == "__main__":
     import uvicorn

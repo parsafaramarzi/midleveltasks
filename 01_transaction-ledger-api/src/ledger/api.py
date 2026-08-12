@@ -1,6 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException, status
 from pydantic import BaseModel
 from src.ledger.db import account_class, transaction_class, init_db, get_connection
+from typing import Optional
 
 init_db()
 
@@ -12,8 +13,9 @@ class AccountModel(BaseModel):
     balance: float
 
 class TransactionModel(BaseModel):
-    account_source_id: int | None
-    account_destination_id: int | None
+    account_source_id: Optional[int]
+    account_destination_id: Optional[int]
+    Idempotency_Key: str
     amount: float
     transaction_type: str
 

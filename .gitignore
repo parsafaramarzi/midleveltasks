@@ -1,8 +1,19 @@
-# Ignore all database files anywhere in the project
+# Database files
 *.db
+*.sqlite3
 
-# Ignore all Python compiled bytecode files
+# Python bytecode & cache
 *.pyc
-
-# Ignore Python cache directories (best practice along with .pyc)
 __pycache__/
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment variables & secrets
+.env
+
+# IDE / Editor folders
+.vscode/
+.idea/

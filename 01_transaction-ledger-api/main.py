@@ -39,14 +39,16 @@ class account():
     def transfer(self, amount, destination_account):
         if amount > self.balance:
             return "Insufficient funds"
-        else:
+        try:
             c.execute("UPDATE accounts SET balance = balance - ? WHERE id = ?", (amount, self.id))
-            conn.commit()
             c.execute("UPDATE accounts SET balance = balance + ? WHERE id = ?", (amount, destination_account.id))
             conn.commit()
             self.balance -= amount
             destination_account.balance += amount
-            return self.balance
+        except Exception:
+            conn.rollback()
+            raise
+        return self.balance
 
     def get_balance(self):
         return self.balance

@@ -1,0 +1,8 @@
+# Ignore all database files anywhere in the project
+*.db
+
+# Ignore all Python compiled bytecode files
+*.pyc
+
+# Ignore Python cache directories (best practice along with .pyc)
+__pycache__/

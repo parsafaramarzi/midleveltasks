@@ -5,10 +5,10 @@ conn = sqlite3.connect("transaction_ledger.db")
 c = conn.cursor()
 
 c.execute('''CREATE TABLE IF NOT EXISTS accounts
-             (id INTEGER PRIMARY KEY, name TEXT, balance REAL)''')
+             (id INTEGER PRIMARY KEY, name TEXT, balance INTEGER)''')
 
 c.execute('''CREATE TABLE IF NOT EXISTS transactions
-             (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER, amount REAL, transaction_type TEXT, timestamp DATETIME)''')
+             (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER, amount INTEGER, transaction_type TEXT, timestamp DATETIME)''')
 
 conn.commit()
 
@@ -36,6 +36,17 @@ class account():
             conn.commit()
             return self.balance
 
+    def transfer(self, amount, destination_account):
+        if amount > self.balance:
+            return "Insufficient funds"
+        else:
+            self.balance -= amount
+            destination_account.balance += amount
+            c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (self.balance, self.id))
+            c.execute("UPDATE accounts SET balance = ? WHERE id = ?", (destination_account.balance, destination_account.id))
+            conn.commit()
+            return self.balance
+
     def get_balance(self):
         return self.balance
 
@@ -55,6 +66,8 @@ class transaction():
             return self.account_destination.deposit(self.amount)
         elif self.transaction_type == "withdraw":
             return self.account_source.withdraw(self.amount)
+        elif self.transaction_type == "transfer":
+            return self.account_source.transfer(self.amount, self.account_destination)
         else:
             return "Invalid transaction type"
 

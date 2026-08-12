@@ -80,3 +80,7 @@ def get_transactions_by_account(account_id: int):
     for row in rows:
         transactions.append({"id": row[0], "account_source_id": row[1], "account_destination_id": row[2], "amount": row[3], "transaction_type": row[4], "timestamp": row[5]})
     return {"transactions": transactions}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)

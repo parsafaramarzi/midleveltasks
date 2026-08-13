@@ -9,7 +9,7 @@ def init_db():
     conn.execute('''CREATE TABLE IF NOT EXISTS accounts
                  (id INTEGER PRIMARY KEY, name TEXT, balance INTEGER)''')
     conn.execute('''CREATE TABLE IF NOT EXISTS transactions
-                 (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER,
+                 (id INTEGER PRIMARY KEY, account_source INTEGER, account_destination INTEGER, idempotency_key TEXT UNIQUE,
                   amount INTEGER, transaction_type TEXT, timestamp DATETIME)''')
     conn.commit()
     conn.close()
@@ -66,14 +66,15 @@ class account_class():
 
 transactions = []
 class transaction_class():
-    def __init__(self, account_source, account_destination, amount, transaction_type):
+    def __init__(self, account_source, account_destination, idempotency_key, amount, transaction_type):
         self.account_source = account_source
         self.account_destination = account_destination
+        self.idempotency_key = idempotency_key
         self.amount = amount
         self.transaction_type = transaction_type
         self.timestamp = datetime.datetime.now()
         conn = get_connection()
-        conn.execute("INSERT INTO transactions (account_source, account_destination, amount, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?)", (self.account_source.id if self.account_source else None, self.account_destination.id if self.account_destination else None, self.amount, self.transaction_type, self.timestamp))
+        conn.execute("INSERT INTO transactions (account_source, account_destination, idempotency_key, amount, transaction_type, timestamp) VALUES (?, ?, ?, ?, ?, ?)", (self.account_source.id if self.account_source else None, self.account_destination.id if self.account_destination else None, self.idempotency_key, self.amount, self.transaction_type, self.timestamp))
         conn.commit()
         conn.close()
 

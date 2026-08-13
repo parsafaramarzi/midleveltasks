@@ -15,7 +15,6 @@ class AccountModel(BaseModel):
 class TransactionModel(BaseModel):
     account_source_id: Optional[int]
     account_destination_id: Optional[int]
-    Idempotency_Key: str
     amount: float
     transaction_type: str
 
@@ -36,7 +35,7 @@ def get_account(account_id: int):
         return {"error": "Account not found"}
 
 @app.post("/transactions/")
-def create_transaction(transaction_data: TransactionModel):
+def create_transaction(transaction_data: TransactionModel, idempotency_key: str = Header(..., alias="Idempotency-Key")):
     account_source = None
     account_destination = None
 
@@ -47,7 +46,7 @@ def create_transaction(transaction_data: TransactionModel):
         if source_row:
             account_source = account_class(source_row[1], source_row[2], source_row[0])
         else:
-            return {"error": "Source account not found"}
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source account not found")
 
     if transaction_data.account_destination_id is not None:
         conn = get_connection()
@@ -56,7 +55,7 @@ def create_transaction(transaction_data: TransactionModel):
         if destination_row:
             account_destination = account_class(destination_row[1], destination_row[2], destination_row[0])
         else:
-            return {"error": "Destination account not found"}
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Destination account not found")
 
     new_transaction = transaction_class(account_source, account_destination, transaction_data.amount, transaction_data.transaction_type)
     new_transaction.process_transaction()
@@ -71,7 +70,7 @@ def get_transaction(transaction_id: int):
     if row:
         return {"id": row[0], "account_source_id": row[1], "account_destination_id": row[2], "amount": row[3], "transaction_type": row[4], "timestamp": row[5]}
     else:
-        return {"error": "Transaction not found"}
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found")
 
 @app.get("/transactions/", response_model=list[TransactionModel])
 def get_transactions_by_account(account_id: int):

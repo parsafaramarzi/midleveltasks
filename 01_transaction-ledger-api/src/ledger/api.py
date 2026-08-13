@@ -38,6 +38,15 @@ def get_account(account_id: int):
 def create_transaction(transaction_data: TransactionModel, idempotency_key: str = Header(..., alias="Idempotency-Key")):
     account_source = None
     account_destination = None
+    key_found = False
+
+    #checking if the idempotency key already exists in the database
+    conn = get_connection()
+    key_row = conn.execute("SELECT * FROM idempotency_keys WHERE key = ?", (idempotency_key,)).fetchone()
+    conn.close()
+
+    if key_row:
+        key_found = True
 
     if transaction_data.account_source_id is not None:
         conn = get_connection()
@@ -57,8 +66,12 @@ def create_transaction(transaction_data: TransactionModel, idempotency_key: str 
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Destination account not found")
 
-    new_transaction = transaction_class(account_source, account_destination, transaction_data.amount, transaction_data.transaction_type)
-    new_transaction.process_transaction()
+    if key_found:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Idempotency key already exists")
+    else:
+        # do the transaction
+        new_transaction = transaction_class(account_source, account_destination, transaction_data.amount, idempotency_key, transaction_data.transaction_type)
+        new_transaction.process_transaction()
 
     return {"message": "Transaction processed successfully", "transaction": {"account_source_id": transaction_data.account_source_id, "account_destination_id": transaction_data.account_destination_id, "amount": transaction_data.amount, "transaction_type": transaction_data.transaction_type}}
 
